@@ -6,15 +6,19 @@ const { Pool } = require('pg');
 const cors = require('cors');
 
 // =================================================================
-// PASSO 2: CONFIGURAR A CONEXão COM O BANCO DE DADOS
+// PASSO 2: CONFIGURAR A CONEXÃO COM O BANCO DE DADOS
 // =================================================================
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: '08079520', // 🚨 ATENÇÃO: Substitua pela sua senha!
-  port: 5432,
+  // Esta linha é a mágica: process.env.DATABASE_URL
+  // Ela diz: "Use a variável de ambiente chamada DATABASE_URL para se conectar".
+  // O Render vai nos fornecer essa variável com a URL do nosso banco online.
+  connectionString: process.env.DATABASE_URL,
+  // Esta configuração de SSL é exigida pela maioria dos serviços de banco de dados na nuvem, como o Render.
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
 
 // =================================================================
 // PASSO 3: CRIAR E CONFIGURAR O SERVIDOR EXPRESS
@@ -40,7 +44,7 @@ app.get('/api/produtos', async (req, res) => {
   }
 });
 
-// ... (Rotas POST, PUT, DELETE continuam exatamente as mesmas) ...
+// ROTA PARA CRIAR UM NOVO PRODUTO (POST)
 app.post('/api/produtos', async (req, res) => {
   const client = await pool.connect();
   try {
@@ -68,6 +72,7 @@ app.post('/api/produtos', async (req, res) => {
   }
 });
 
+// ROTA PARA ATUALIZAR UM PRODUTO EXISTENTE (PUT)
 app.put('/api/produtos/:id', async (req, res) => {
   const client = await pool.connect();
   try {
@@ -102,6 +107,7 @@ app.put('/api/produtos/:id', async (req, res) => {
   }
 });
 
+// ROTA PARA "DELETAR" UM PRODUTO (SOFT DELETE)
 app.delete('/api/produtos/:id', async (req, res) => {
   const client = await pool.connect();
   try {
@@ -134,21 +140,11 @@ app.delete('/api/produtos/:id', async (req, res) => {
 // ROTA PARA BUSCAR O HISTÓRICO (GET)
 app.get('/api/historico', async (req, res) => {
     try {
-      // Este comando SQL é poderoso!
-      // JOIN: Combina dados das duas tabelas.
-      // ON h.produto_id = p.id: A condição para a combinação.
-      // p.nome AS nome_produto: Pega a coluna 'nome' da tabela 'produtos' e a renomeia para 'nome_produto' no resultado.
       const sql = `
-        SELECT 
-            h.id, h.acao, h.quantidade_alterada, h.estoque_anterior, h.estoque_novo, h.data_movimentacao,
-            p.nome AS nome_produto
-        FROM 
-            historico_movimentacoes h
-        JOIN 
-            produtos p ON h.produto_id = p.id
-        ORDER BY 
-            h.data_movimentacao DESC
-      `;
+        SELECT h.*, p.nome AS nome_produto
+        FROM historico_movimentacoes h
+        JOIN produtos p ON h.produto_id = p.id
+        ORDER BY h.data_movimentacao DESC`;
       const result = await pool.query(sql);
       res.json(result.rows);
     } catch (error) {
