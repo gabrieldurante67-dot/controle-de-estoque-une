@@ -1,0 +1,52 @@
+/* style.css */
+:root {
+  --card-radius: 12px;
+}
+body {
+  background: linear-gradient(180deg, #f6f8fb, #eef3fb);
+  font-family: Inter, system-ui, Arial, sans-serif;
+  padding: 24px;
+  min-height: 100vh;
+}
+.card {
+  border-radius: var(--card-radius);
+  box-shadow: 0 8px 30px rgba(23, 40, 80, 0.06);
+  border: none;
+}
+.low-stock {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 240, 240, 0.9),
+    rgba(255, 250, 250, 0.6)
+  );
+}
+.small-muted {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+.table-fixed thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+@media (max-width: 720px) {
+  .d-hide-sm {
+    display: none !important;
+  }
+}
+/* Estilos para a ordenação da tabela */
+.sortable {
+  cursor: pointer;
+  user-select: none; /* Evita que o texto seja selecionado ao clicar */
+}
+
+.sortable:hover {
+  background-color: #f0f0f0; /* Um leve destaque ao passar o rato */
+}
+
+.sort-icon {
+  display: inline-block;
+  width: 1em; /* Garante que o ícone tem espaço */
+  text-align: center;
+}
