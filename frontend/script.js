@@ -15,7 +15,7 @@ class StockManager {
 
   async load() {
     try {
-      const response = await fetch('http://localhost:3000/api/produtos');
+      const response = await fetch('https://controle-de-estoque-une.onrender.com/api/produtos');
       const produtosDoBackend = await response.json();
       this.estoque = produtosDoBackend.map(p => ({
         id: p.id,
@@ -32,7 +32,7 @@ class StockManager {
   
   async deleteProduct(productId) {
     try {
-      const response = await fetch(`http://localhost:3000/api/produtos/${productId}`, {
+      const response = await fetch(`https://controle-de-estoque-une.onrender.com/api/produtos/${productId}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -79,7 +79,7 @@ async function showHistoryModal() {
     historyModal.show();
 
     // 2. Busca os dados do histórico na nossa nova API
-    const response = await fetch('http://localhost:3000/api/historico');
+    const response = await fetch('https://controle-de-estoque-une.onrender.com/api/historico');
     const historyData = await response.json();
 
     // 3. Verifica se há registros
@@ -166,7 +166,7 @@ async function handleSave() {
   if (!currentEditingProduct) {
     const novoProduto = { nome, preco, quantidade };
     try {
-      const response = await fetch('http://localhost:3000/api/produtos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(novoProduto) });
+      const response = await fetch('https://controle-de-estoque-une.onrender.com/api/produtos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(novoProduto) });
       if (!response.ok) throw new Error('Falha ao criar o produto.');
       showToast('Produto adicionado com sucesso!');
     } catch (error) {
@@ -176,7 +176,7 @@ async function handleSave() {
   } else {
     const dadosAtualizados = { ...currentEditingProduct, nome: nome, preco: preco, quantidade: quantidade, estoque_minimo: currentEditingProduct.estoqueMinimo };
     try {
-      const response = await fetch(`http://localhost:3000/api/produtos/${currentEditingProduct.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosAtualizados) });
+      const response = await fetch(`https://controle-de-estoque-une.onrender.com/api/produtos/${currentEditingProduct.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosAtualizados) });
       if (!response.ok) throw new Error('Falha ao atualizar o produto.');
       showToast('Produto atualizado com sucesso!');
     } catch (error) {
