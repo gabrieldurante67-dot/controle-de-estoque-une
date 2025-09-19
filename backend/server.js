@@ -186,23 +186,34 @@ app.delete('/api/produtos/:id', authenticateToken, async (req, res) => { // <-- 
   }
 });
 
-// ROTA PARA BUSCAR O HISTÓRICO (GET) - Vamos proteger também
-app.get('/api/historico', authenticateToken, async (req, res) => { // <-- NOVO: `authenticateToken`
-  // ... (o resto do seu código desta rota continua igual)
+// ROTA PARA BUSCAR O HISTÓRICO (GET)
+app.get('/api/historico', authenticateToken, async (req, res) => {
   try {
-      const sql = `
-        SELECT h.*, p.nome AS nome_produto
-        FROM historico_movimentacoes h
-        JOIN produtos p ON h.produto_id = p.id
-        ORDER BY h.data_movimentacao DESC`;
-      const result = await pool.query(sql);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Erro ao buscar histórico:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+    const sql = `
+      SELECT
+        h.id,
+        h.produto_id,
+        h.acao,
+        h.quantidade_alterada,
+        h.estoque_anterior,
+        h.estoque_novo,
+        h.data_movimentacao,
+        p.nome AS nome_produto
+      FROM 
+        historico_movimentacoes h
+      JOIN 
+        produtos p ON h.produto_id = p.id
+      ORDER BY 
+        h.data_movimentacao DESC`;
+    
+    const result = await pool.query(sql);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Erro ao buscar histórico:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
 });
-
 // =================================================================
 // PASSO 5: INICIAR O SERVIDOR
 // =================================================================
