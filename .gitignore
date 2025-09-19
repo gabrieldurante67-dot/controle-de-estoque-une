@@ -1,0 +1,5 @@
+# Ignorar a pasta de dependências do backend
+/backend/node_modules
+
+# Ignorar o script de gerar hash, pois ele não é parte da aplicação
+/backend/generate-hash.js
