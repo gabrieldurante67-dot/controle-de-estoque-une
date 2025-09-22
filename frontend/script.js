@@ -3,7 +3,6 @@
 // =================================================================
 const authToken = localStorage.getItem('authToken');
 if (!authToken) {
-    // Se não houver token, redireciona imediatamente para a página de login.
     window.location.href = 'login.html';
 }
 
@@ -35,6 +34,12 @@ class StockManager {
       const response = await fetch('https://controle-de-estoque-une.onrender.com/api/produtos', {
           headers: this._getAuthHeaders()
       });
+      // Se o token for inválido, o servidor retornará 401 ou 403
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+        return;
+      }
       const produtosDoBackend = await response.json();
       this.estoque = produtosDoBackend.map(p => ({
         id: p.id,
@@ -65,7 +70,24 @@ class StockManager {
     }
   }
 
-  reset() { console.log('A função reset() precisa ser atualizada para usar a API.'); }
+  // ===== FUNÇÃO RESET ATUALIZADA =====
+  async reset() {
+    try {
+        const response = await fetch('https://controle-de-estoque-une.onrender.com/api/reset', {
+            method: 'POST',
+            headers: this._getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao comunicar com o servidor para resetar o estoque.');
+        }
+        console.log('Comando de reset enviado com sucesso.');
+    } catch (error) {
+        console.error('Erro na função reset:', error);
+        throw error; 
+    }
+  }
+
   setAllMinimum(newMin) { this.estoque.forEach(p => (p.estoqueMinimo = newMin)); this.save(); }
   
   getFilteredProducts(searchTerm = '', filterValue = 'all') { const f = this.estoque.filter(p => { if (!p || typeof p.nome !== 'string') return false; const mS = p.nome.toLowerCase().includes(searchTerm.toLowerCase()); if (!mS) return false; const q = typeof p.quantidade === 'number' ? p.quantidade : 0, m = typeof p.estoqueMinimo === 'number' ? p.estoqueMinimo : 0; if (filterValue === 'low') return q < m; if (filterValue === 'ok') return q >= m; return true; }); return [...f].sort((a, b) => { const vA = a[this.sortColumn], vB = b[this.sortColumn], dir = this.sortDirection === 'asc' ? 1 : -1; if (this.sortColumn === 'price' || this.sortColumn === 'quantidade') { return ((vA || 0) - (vB || 0)) * dir; } if (typeof vA === 'string' && typeof vB === 'string') { return vA.localeCompare(vB) * dir; } return 0; }); }
@@ -184,7 +206,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     editorSave.addEventListener('click', handleSave); 
     btnHistory.addEventListener('click', showHistoryModal);
     confirmationModalConfirm.addEventListener('click', () => { if (typeof confirmCallback === 'function') { confirmCallback(); } confirmationModal.hide(); }); 
-    btnReset.addEventListener('click', () => { showConfirmationModal('Resetar Estoque', 'Tem a certeza?', () => { stockManager.reset(); render(); showToast('Estoque resetado com sucesso!'); }); }); 
+    
+    // ===== EVENT LISTENER DO BOTÃO RESET ATUALIZADO =====
+    btnReset.addEventListener('click', () => {
+      showConfirmationModal(
+        'Resetar Estoque',
+        '<strong>Atenção:</strong> Esta ação é irreversível e apagará <strong>todos os produtos e o histórico de movimentações</strong>. Deseja continuar?',
+        async () => {
+          try {
+            await stockManager.reset();
+            await stockManager.load();
+            render();
+            showToast('Estoque resetado com sucesso!');
+          } catch (error) {
+            showToast('Não foi possível resetar o estoque.', 'error');
+          }
+        }
+      );
+    });
+    
     btnSetMinAll.addEventListener('click', () => { const bC = `<p>Digite o novo estoque mínimo padrão.</p><input type="number" id="promptInput" class="form-control" value="${DEFAULT_MIN}" />`; showConfirmationModal('Definir Estoque Mínimo', bC, () => { const i = document.getElementById('promptInput'); const nM = parseFloat(i.value); if (!isNaN(nM) && nM >= 0) { stockManager.setAllMinimum(nM); render(); showToast(`Estoque mínimo alterado para ${nM.toFixed(2)} ton!`); } else { showToast('Valor inválido.', 'error'); } }); }); 
     
     tableWrapper.addEventListener('click', (event) => { 
