@@ -39,7 +39,7 @@ loginForm.addEventListener('submit', async (event) => {
 
         // Redireciona para a página principal após um breve intervalo
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'index.html'; // Garanta que sua página principal se chama 'index.html'
         }, 1000);
 
     } catch (error) {
