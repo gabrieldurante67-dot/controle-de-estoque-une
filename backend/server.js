@@ -10,8 +10,15 @@ const jwt = require('jsonwebtoken');
 // =================================================================
 // PASSO 2: CONFIGURAR A CONEXÃO E A SEGURANÇA
 // =================================================================
+
+// Verificação de segurança: Garante que a URL do banco de dados existe antes de iniciar.
+if (!process.env.DATABASE_URL) {
+    throw new Error("ERRO CRÍTICO: A variável de ambiente DATABASE_URL não foi definida.");
+}
+
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:#137@27hub356978G#@db.wslmwnfhrfmdcvosihpf.supabase.co:5432/postgres',
+  // Voltamos a usar a variável de ambiente. É mais seguro e flexível.
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   }
@@ -23,7 +30,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'coloque-uma-chave-bem-secreta-e-lo
 // PASSO 3: CRIAR E CONFIGURAR O SERVIDOR EXPRESS
 // =================================================================
 const app = express();
-const PORT = process.env.PORT || 3000; // Render irá fornecer a porta 10000 através de process.env.PORT
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -78,7 +85,7 @@ function authenticateToken(req, res, next) {
 // --- ROTAS DE PRODUTOS ---
 
 // ROTA PARA BUSCAR TODOS OS PRODUTOS (GET)
-app.get('/api/produtos', authenticateToken, async (req, res) => { // Protegendo a rota de leitura também
+app.get('/api/produtos', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM produtos WHERE deletado_em IS NULL ORDER BY nome ASC');
     res.json(result.rows);
@@ -207,7 +214,7 @@ app.get('/api/historico', authenticateToken, async (req, res) => {
 
 
 // =================================================================
-// ROTA PARA RESETAR O ESTOQUE - CÓDIGO NOVO ADICIONADO AQUI
+// ROTA PARA RESETAR O ESTOQUE
 // =================================================================
 app.post('/api/reset', authenticateToken, async (req, res) => {
   console.log('Recebida requisição para resetar o banco de dados.');
@@ -228,7 +235,7 @@ app.post('/api/reset', authenticateToken, async (req, res) => {
     await client.query('TRUNCATE TABLE historico_movimentacoes');
 
     console.log('Limpando tabela de produtos...');
-    await client.query('TRUNCATE TABLE produtos RESTART IDENTITY CASCADE'); // CASCADE para limpar FKs
+    await client.query('TRUNCATE TABLE produtos RESTART IDENTITY CASCADE');
 
     console.log('Inserindo produtos padrão...');
     const queryText = 'INSERT INTO produtos(nome, preco, quantidade, estoque_minimo) VALUES($1, $2, $3, $4)';
@@ -252,8 +259,6 @@ app.post('/api/reset', authenticateToken, async (req, res) => {
 // =================================================================
 // PASSO 5: INICIAR O SERVIDOR
 // =================================================================
-// A linha abaixo foi a única alterada. Adicionamos '0.0.0.0' para garantir
-// que o servidor seja acessível externamente no ambiente do Render.
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando e ouvindo na porta ${PORT}.`);
 });
