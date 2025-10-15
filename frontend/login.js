@@ -21,7 +21,7 @@ loginForm.addEventListener('submit', async (event) => {
     button.textContent = 'Aguarde...';
 
     try {
-        const response = await fetch('https://controle-de-estoque-une.onrender.com/api/login', {
+        const response = await fetch('https://controle-de-estoque-une.onrender.com', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, senha }),
