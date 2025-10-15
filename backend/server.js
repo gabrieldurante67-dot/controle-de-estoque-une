@@ -23,7 +23,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'coloque-uma-chave-bem-secreta-e-lo
 // PASSO 3: CRIAR E CONFIGURAR O SERVIDOR EXPRESS
 // =================================================================
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // Render irá fornecer a porta 10000 através de process.env.PORT
 
 app.use(cors());
 app.use(express.json());
@@ -252,6 +252,8 @@ app.post('/api/reset', authenticateToken, async (req, res) => {
 // =================================================================
 // PASSO 5: INICIAR O SERVIDOR
 // =================================================================
-app.listen(PORT, () => {
+// A linha abaixo foi a única alterada. Adicionamos '0.0.0.0' para garantir
+// que o servidor seja acessível externamente no ambiente do Render.
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando e ouvindo na porta ${PORT}.`);
 });
