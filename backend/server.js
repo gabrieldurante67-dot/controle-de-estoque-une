@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken');
 // PASSO 2: CONFIGURAR A CONEXÃO E A SEGURANÇA
 // =================================================================
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: postgresql://postgres:#137@27hub356978G#@db.wslmwnfhrfmdcvosihpf.supabase.co:5432/postgres,
   ssl: {
     rejectUnauthorized: false
   }
